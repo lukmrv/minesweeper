@@ -195,13 +195,11 @@ const attachListener = (cellsArray) => {
     const cellIndex = [...gridContainer.children].indexOf(e.target);
     const isCellFlagged = e.target.innerText === FLAG;
     if (isCellFlagged) return;
-
-    revealCells(cellsArray, cellIndex);
-
     if (cellsArray[cellIndex].value === BOMB) {
       gameState = "lose";
       revealBombs(cellsArray, cellIndex);
     }
+    revealCells(cellsArray, cellIndex);
   };
 
   const handleContextClick = (e) => {
@@ -213,10 +211,14 @@ const attachListener = (cellsArray) => {
     }
   };
 
-  gridContainer.onclick = function () {
-    if (gameState === "lose" || gameState === "win") {
-      gridContainer.removeEventListener("click", handleClick);
+  gridContainer.oncontextmenu = function () {
+    if (gameState === "lose") {
       gridContainer.removeEventListener("contextmenu", handleContextClick);
+    }
+  };
+  gridContainer.onclick = function () {
+    if (gameState === "lose") {
+      gridContainer.removeEventListener("click", handleClick);
     }
   };
   if (gameState === "ongoing" || gameState === "idle") {
