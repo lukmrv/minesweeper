@@ -1,12 +1,13 @@
 const GRID_SIZE = 9;
 const CELL_SIZE = 40;
-const BOMBS_NUMBER = 10;
+const BOMBS_NUMBER = 2;
 const BOMB = "💣";
 const FLAG = "🚩";
 
 let gameState = "idle"; // idle / ongoing / lose / win
 
-const gridContainer = document.getElementById("container");
+const restartButton = document.querySelector(".restart_button");
+const gridContainer = document.getElementById("grid_container");
 
 const createGridLayout = () => {
   gridContainer.style.setProperty("--grid-width", GRID_SIZE);
@@ -101,35 +102,18 @@ const calculateCellNumbers = (array) =>
     return cell;
   });
 
-const drawCells = (cellsArray) =>
-  cellsArray.map((cell) => {
-    const cellDiv = document.createElement("div");
-    cellDiv.className = "cell";
-    gridContainer.appendChild(cellDiv);
-
-    if (cell.revealed && cell.value) cellDiv.innerText = cell.value;
-
-    if (cell.value === 1) cellDiv.style.color = "blue";
-    if (cell.value === 2) cellDiv.style.color = "green";
-    if (cell.value === 3) cellDiv.style.color = "red";
-    if (cell.value === 4) cellDiv.style.color = "purple";
-    if (cell.value === 5) cellDiv.style.color = "orange";
-    if (cell.value === 6) cellDiv.style.color = "orange";
-    if (cell.value === 7) cellDiv.style.color = "orange";
-    if (cell.value === 8) cellDiv.style.color = "orange";
-
-    return cell;
-  });
-
 const revealCells = (cellsArray, cellIndex) => {
   const cell = cellsArray[cellIndex];
   if (cell?.revealed) return cellsArray;
 
-  cell.revealed = true;
-
   const cellDiv = gridContainer.childNodes[cellIndex];
-  cellDiv.classList.add("revealed");
-  cellDiv.innerText = cell.value || "";
+  const isCellFlagged = cellDiv.innerText === FLAG;
+
+  if (!isCellFlagged) {
+    cell.revealed = true;
+    cellDiv.classList.add("revealed");
+  }
+  cellDiv.innerText = isCellFlagged ? FLAG : cell.value || "";
 
   if (cell.value === 0) {
     const isRightCell =
@@ -177,7 +161,7 @@ const revealCells = (cellsArray, cellIndex) => {
   return cellsArray;
 };
 
-const revealBombs = (cellsArray) => {
+const revealBombs = (cellsArray) =>
   cellsArray.forEach((cell, idx) => {
     const cellDiv = gridContainer.children[idx];
     if (cellDiv.innerText === FLAG && cell.value !== BOMB) {
@@ -188,47 +172,66 @@ const revealBombs = (cellsArray) => {
       if (cellDiv.innerText !== FLAG) cellDiv.innerText = cell.value;
     }
   });
+
+const handleCellClick = (event, cellsArray, index) => {
+  if (gameState !== "lose" && gameState !== "win") gameState = "ongoing";
+  if (gameState === "lose" || gameState === "win") return;
+
+  const isCellFlagged = event.target.innerText === FLAG;
+  if (isCellFlagged) return;
+
+  if (cellsArray[index].value === BOMB) {
+    gameState = "lose";
+    revealBombs(cellsArray, index);
+  }
+  revealCells(cellsArray, index);
 };
 
-const attachListener = (cellsArray) => {
-  const handleClick = (e) => {
-    const cellIndex = [...gridContainer.children].indexOf(e.target);
-    const isCellFlagged = e.target.innerText === FLAG;
-    if (isCellFlagged) return;
-    if (cellsArray[cellIndex].value === BOMB) {
-      gameState = "lose";
-      revealBombs(cellsArray, cellIndex);
-    }
-    revealCells(cellsArray, cellIndex);
-  };
+const handleCellRightClick = (event) => {
+  if (gameState === "lose" || gameState === "win") return;
 
-  const handleContextClick = (e) => {
-    e.preventDefault();
-    if (e.target.innerText === FLAG) {
-      e.target.innerText = "";
-    } else {
-      e.target.innerText = FLAG;
-    }
-  };
-
-  gridContainer.oncontextmenu = function () {
-    if (gameState === "lose") {
-      gridContainer.removeEventListener("contextmenu", handleContextClick);
-    }
-  };
-  gridContainer.onclick = function () {
-    if (gameState === "lose") {
-      gridContainer.removeEventListener("click", handleClick);
-    }
-  };
-  if (gameState === "ongoing" || gameState === "idle") {
-    gridContainer.addEventListener("click", handleClick);
-    gridContainer.addEventListener("contextmenu", handleContextClick);
+  if (event.target.innerText === FLAG) {
+    event.target.innerText = "";
+  } else {
+    event.target.innerText = FLAG;
   }
 };
 
+const drawCells = (cellsArray) =>
+  cellsArray.map((cell, index) => {
+    const cellDiv = document.createElement("div");
+    cellDiv.className = "cell";
+    cellDiv.addEventListener("click", (event) => {
+      handleCellClick(event, cellsArray, index);
+    });
+    cellDiv.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      handleCellRightClick(event);
+    });
+    gridContainer.appendChild(cellDiv);
+
+    if (cell.revealed && cell.value) cellDiv.innerText = cell.value;
+
+    if (cell.value === 1) cellDiv.style.color = "blue";
+    if (cell.value === 2) cellDiv.style.color = "green";
+    if (cell.value === 3) cellDiv.style.color = "red";
+    if (cell.value === 4) cellDiv.style.color = "purple";
+    if (cell.value === 5) cellDiv.style.color = "orange";
+    if (cell.value === 6) cellDiv.style.color = "orange";
+    if (cell.value === 7) cellDiv.style.color = "orange";
+    if (cell.value === 8) cellDiv.style.color = "orange";
+
+    return cell;
+  });
+
 // init sequence
-createGridLayout();
-attachListener(
-  drawCells(calculateCellNumbers(fillArrayWithBombs(generateEmptyArray())))
-);
+const init = () => {
+  gameState = "idle";
+  gridContainer.innerHTML = "";
+  createGridLayout();
+  drawCells(calculateCellNumbers(fillArrayWithBombs(generateEmptyArray())));
+};
+
+init();
+
+restartButton.addEventListener("click", init);

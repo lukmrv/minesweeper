@@ -15,7 +15,10 @@ body {
   font-size: 7.5vmin;
 }
 
-#container {
+.container {
+}
+
+#grid_container {
   border: 1px solid silver;
   display: grid;
   grid-template-columns: repeat(var(--grid-width), 1fr);
