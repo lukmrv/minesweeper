@@ -1,13 +1,33 @@
-const GRID_SIZE = 9;
+const gridSizeInputElement = document.querySelector(".grid_size");
+const bombsNumberElement = document.querySelector(".bombs_number");
+const flagsNumberElement = document.querySelector(".flags_number");
+const restartButton = document.querySelector(".restart_button");
+const gridContainer = document.getElementById("grid_container");
+
+let GRID_SIZE = Number(gridSizeInputElement.value);
+let BOMBS_NUMBER = Number(bombsNumberElement.value);
 const CELL_SIZE = 40;
-const BOMBS_NUMBER = 2;
 const BOMB = "💣";
 const FLAG = "🚩";
 
+let numberOfFlags = 0;
 let gameState = "idle"; // idle / ongoing / lose / win
 
-const restartButton = document.querySelector(".restart_button");
-const gridContainer = document.getElementById("grid_container");
+let onlongtouch = false;
+let timer = false;
+let duration = 500;
+
+function touchStart() {
+  if (!timer) {
+    timer = setTimeout(onlongtouch, duration);
+  }
+}
+function touchEnd() {
+  if (timer) {
+    clearTimeout(timer);
+    timer = false;
+  }
+}
 
 const createGridLayout = () => {
   gridContainer.style.setProperty("--grid-width", GRID_SIZE);
@@ -191,10 +211,19 @@ const handleCellRightClick = (event) => {
   if (gameState === "lose" || gameState === "win") return;
 
   if (event.target.innerText === FLAG) {
+    numberOfFlags -= 1;
+    onlongtouch = function () {
+      event.target.innerText = "";
+    };
     event.target.innerText = "";
   } else {
+    numberOfFlags += 1;
+    onlongtouch = function () {
+      event.target.innerText = FLAG;
+    };
     event.target.innerText = FLAG;
   }
+  flagsNumberElement.innerText = numberOfFlags;
 };
 
 const drawCells = (cellsArray) =>
@@ -226,6 +255,17 @@ const drawCells = (cellsArray) =>
 
 // init sequence
 const init = () => {
+  if (gridSizeInputElement.value < 100) {
+    GRID_SIZE = Number(gridSizeInputElement.value);
+  } else {
+    alert("max value 100");
+  }
+  if (bombsNumberElement.value < GRID_SIZE * GRID_SIZE) {
+    BOMBS_NUMBER = Number(bombsNumberElement.value);
+  } else {
+    alert(`max bombs ${GRID_SIZE * GRID_SIZE - 1}`);
+  }
+
   gameState = "idle";
   gridContainer.innerHTML = "";
   createGridLayout();
