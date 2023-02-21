@@ -6,27 +6,12 @@ const gridContainer = document.getElementById("grid_container");
 
 let GRID_SIZE = Number(gridSizeInputElement.value);
 let BOMBS_NUMBER = Number(bombsNumberElement.value);
-const CELL_SIZE = 40;
+const CELL_SIZE = 18;
 const BOMB = "💣";
 const FLAG = "🚩";
 
 let numberOfFlags = 0;
 let gameState = "idle"; // idle / ongoing / lose / win
-
-let onlongtouch = false;
-let timer = false;
-let duration = 50;
-function touchStart() {
-  if (!timer) {
-    timer = setTimeout(onlongtouch, duration);
-  }
-}
-function touchEnd() {
-  if (timer) {
-    clearTimeout(timer);
-    timer = false;
-  }
-}
 
 const createGridLayout = () => {
   gridContainer.style.setProperty("--grid-width", GRID_SIZE);
@@ -211,15 +196,9 @@ const handleCellRightClick = (event) => {
 
   if (event.target.innerText === FLAG) {
     numberOfFlags -= 1;
-    onlongtouch = function () {
-      event.target.innerText = "";
-    };
     event.target.innerText = "";
   } else {
     numberOfFlags += 1;
-    onlongtouch = function () {
-      event.target.innerText = FLAG;
-    };
     event.target.innerText = FLAG;
   }
   flagsNumberElement.innerText = numberOfFlags;
