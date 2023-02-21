@@ -15,8 +15,7 @@ let gameState = "idle"; // idle / ongoing / lose / win
 
 let onlongtouch = false;
 let timer = false;
-let duration = 500;
-
+let duration = 50;
 function touchStart() {
   if (!timer) {
     timer = setTimeout(onlongtouch, duration);
